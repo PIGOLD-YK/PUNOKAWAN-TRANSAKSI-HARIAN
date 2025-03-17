@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <h1>Akumulasi Transaksi Punokawan Group 2</h1>
+    <h1>Akumulasi Transaksi Punokawan Group</h1>
     <h2 id="currentDate"></h2>
     <h3>Total Transaksi Hari Ini:</h3>
     <div id="totalSum">Rp 0</div>
@@ -41,31 +41,59 @@
             .then(csvData => {
                 Papa.parse(csvData, {
                     header: true,
-                    dynamicTyping: true,
+                    skipEmptyLines: true,
                     complete: function(results) {
+                        console.log("Data CSV Terbaca:", results.data);
+
+                        if (results.data.length === 0) {
+                            console.error("CSV kosong atau tidak terbaca dengan baik.");
+                            return;
+                        }
+
                         const data = results.data;
                         let total = 0;
 
                         data.forEach(row => {
-                            if (row['Tanggal'] && row['harga Jual Rupiah (Rp)']) {
-                                let rowDate = new Date(row['Tanggal']);
-                                
-                                // Perbaikan parsing tanggal jika formatnya tidak langsung dikenali
-                                if (isNaN(rowDate)) {
-                                    const dateParts = row['Tanggal'].split('-');
-                                    if (dateParts.length === 3) {
-                                        rowDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
-                                    }
-                                }
+                            console.log("Data Baris:", row);
 
-                                const rowDateStr = rowDate.toISOString().split('T')[0];
+                            // Cek apakah kolom 'Tanggal' dan 'harga Jual Rupiah (Rp)' ada
+                            if (!row['Tanggal'] || !row['harga Jual Rupiah (Rp)']) {
+                                console.warn("Baris di-skip karena tidak memiliki data yang lengkap:", row);
+                                return;
+                            }
 
-                                if (rowDateStr === todayStr) {
-                                    total += parseFloat(row['harga Jual Rupiah (Rp)']) || 0;
+                            // Normalisasi format tanggal (pastikan dari format DD-MM-YYYY atau YYYY-MM-DD)
+                            let rowDate = new Date(row['Tanggal']);
+                            if (isNaN(rowDate)) {
+                                const parts = row['Tanggal'].split('-');
+                                if (parts.length === 3) {
+                                    rowDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                                 }
+                            }
+
+                            // Pastikan tanggal valid
+                            if (isNaN(rowDate)) {
+                                console.warn("Format tanggal tidak dikenali:", row['Tanggal']);
+                                return;
+                            }
+
+                            const rowDateStr = rowDate.toISOString().split('T')[0];
+
+                            // Pastikan nilai transaksi valid dan dalam bentuk angka
+                            let transactionValue = parseFloat(row['harga Jual Rupiah (Rp)']);
+                            if (isNaN(transactionValue)) {
+                                console.warn("Nilai transaksi tidak valid:", row['harga Jual Rupiah (Rp)']);
+                                return;
+                            }
+
+                            // Jika tanggal sesuai dengan hari ini, tambahkan ke total
+                            if (rowDateStr === todayStr) {
+                                total += transactionValue;
+                                console.log("Transaksi ditambahkan:", transactionValue);
                             }
                         });
 
+                        console.log("Total transaksi hari ini:", total);
                         document.getElementById('totalSum').textContent = formatRupiah(total);
                     }
                 });
