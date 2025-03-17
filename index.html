@@ -80,9 +80,9 @@
                             const rowDateStr = rowDate.toISOString().split('T')[0];
 
                             // Pastikan nilai transaksi valid dan dalam bentuk angka
-                            let transactionValue = parseFloat(row['harga Jual Rupiah (Rp)']);
+                            let transactionValue = parseFloat(row['Harga Jual Rupiah (Rp)']);
                             if (isNaN(transactionValue)) {
-                                console.warn("Nilai transaksi tidak valid:", row['harga Jual Rupiah (Rp)']);
+                                console.warn("Nilai transaksi tidak valid:", row['Harga Jual Rupiah (Rp)']);
                                 return;
                             }
 
