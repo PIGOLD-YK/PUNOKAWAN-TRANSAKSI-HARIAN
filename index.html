@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Transaksi Harian</title>
+    <title>Data Transaksi Punokawan Group</title>
     <style>
         body {
-            background-color: yellow;
-            text-align: center;
+            background-color: gold;
             font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
         }
         h1, h2, h3 {
             color: black;
@@ -16,52 +17,57 @@
     </style>
 </head>
 <body>
-    <h1>Data Transaksi</h1>
-    <h2>PUNOKAWAN GROUP</h2>
-    <h3 id="datetime"></h3>
-    <h3>Transaksi / Hari Ini</h3>
-    <h1 id="totalTransaksi">Rp 0</h1>
+    <h1>Data Transaksi Punokawan Group</h1>
+    <h2 id="date-time">Tanggal: -- | Waktu: --</h2>
+    <h3>Akumulasi Hari Ini</h3>
+    <h2 id="total">Memuat data...</h2>
     <p>Powered By PIGOLD th 2025</p>
-    
+
     <script>
+        const SHEET_ID = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
+        const API_KEY = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
+        const RANGE = "DataTransaksi!G:G";
+
         async function fetchData() {
-    const spreadsheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-    const range = "DataTransaksi!A:G"; // Mengambil seluruh kolom yang berisi tanggal dan transaksi
-    const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+            try {
+                const response = await fetch(
+                    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`
+                );
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    document.getElementById("total").innerText = "Data tidak ditemukan";
+                    return;
+                }
+                
+                const today = new Date().toISOString().split("T")[0];
+                let total = 0;
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!data.values) {
-            throw new Error("Data tidak ditemukan");
-        }
-
-        const rows = data.values;
-        const today = new Date().toLocaleDateString("id-ID"); // Format: DD/MM/YYYY
-        let totalTransaksi = 0;
-
-        for (let i = 1; i < rows.length; i++) { // Mulai dari baris kedua (baris pertama adalah header)
-            const rowDate = new Date(rows[i][0]).toLocaleDateString("id-ID"); // Asumsikan tanggal ada di kolom A
-            const transaksi = parseFloat(rows[i][6]?.replace(/[^0-9.-]+/g, "")) || 0; // Kolom G (indeks 6)
-
-            if (rowDate === today) {
-                totalTransaksi += transaksi;
+                data.values.forEach(row => {
+                    let value = parseFloat(row[0]);
+                    if (!isNaN(value)) {
+                        total += value;
+                    }
+                });
+                
+                document.getElementById("total").innerText = `Rp ${total.toLocaleString("id-ID")}`;
+            } catch (error) {
+                document.getElementById("total").innerText = "Gagal mengambil data";
+                console.error("Error fetching data:", error);
             }
         }
 
-        document.getElementById("total-transaksi").innerText = `Rp ${totalTransaksi.toLocaleString("id-ID")}`;
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        document.getElementById("total-transaksi").innerText = "Data tidak tersedia";
-    }
-}
-        
+        function updateDateTime() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString("id-ID");
+            const timeString = now.toLocaleTimeString("id-ID", {hour12: false});
+            document.getElementById("date-time").innerText = `Tanggal: ${dateString} | Waktu: ${timeString}`;
+        }
+
         updateDateTime();
         fetchData();
-        setInterval(updateDateTime, 1000);
-        setInterval(fetchData, 60000); // Update data setiap 1 menit
+        setInterval(fetchData, 60000); // Update setiap 60 detik
+        setInterval(updateDateTime, 1000); // Update waktu setiap detik
     </script>
 </body>
 </html>
