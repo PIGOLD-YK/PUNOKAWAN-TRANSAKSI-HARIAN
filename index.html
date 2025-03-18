@@ -43,20 +43,31 @@
                     return;
                 }
 
+                console.log("Data API:", data.values); // Debugging: Lihat format data dari Google Sheets API
+
                 const today = new Date();
-                const todayDateString = today.toLocaleDateString('id-ID'); // Format: dd/mm/yyyy
-                console.log("Hari ini:", todayDateString); // Debugging
+                const todayFormatted = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+                console.log("Tanggal Hari Ini:", todayFormatted); // Debugging
 
                 let total = 0;
                 data.values.forEach((row, index) => {
                     if (index === 0) return; // Lewati header jika ada
 
                     let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
-                    let transactionValue = row[6] ? parseFloat(row[6]) : 0; // Kolom G (Nilai Transaksi)
+                    let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
 
-                    console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Nilai = ${transactionValue}`);
+                    // Konversi format tanggal Sheets jika berbentuk lain
+                    let formattedDate = "";
+                    if (transactionDate.includes('/')) {
+                        let parts = transactionDate.split('/');
+                        formattedDate = `20${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    } else {
+                        formattedDate = transactionDate; // Jika sudah dalam format YYYY-MM-DD
+                    }
 
-                    if (transactionDate === todayDateString && !isNaN(transactionValue)) {
+                    console.log(`Data ke-${index}: Tanggal = ${formattedDate}, Nilai = ${transactionValue}`);
+
+                    if (formattedDate === todayFormatted && !isNaN(transactionValue)) {
                         total += transactionValue;
                     }
                 });
