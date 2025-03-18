@@ -55,7 +55,7 @@
                 data.values.forEach((row, index) => {
                     if (index === 0) return; // Lewati header jika ada
 
-                    let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
+                    let transactionDate = row[7] ? row[7].trim() : ""; // Kolom M (Tanggal)
                     let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
                     let normalizedDate = ""; // Deklarasikan di awal untuk menghindari error
 
