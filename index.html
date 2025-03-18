@@ -55,25 +55,36 @@
                 data.values.forEach((row, index) => {
                     if (index === 0) return; // Lewati header jika ada
 
-                    let transactionDate = row[0] ? row[0].trim() : ""; // Kolom M (Tanggal)
+                    let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
                     let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
                     let normalizedDate = ""; // Deklarasikan di awal untuk menghindari error
 
-                    // Pastikan format tanggal tetap konsisten (dd/mm/yyyy)
+                    // Jika tanggal dalam format waktu (misal: "dd/mm/yyyy hh:mm:ss")
                     if (transactionDate.includes(" ")) {
-    // Jika ada jam (format: "dd/mm/yyyy hh:mm:ss")
-    let dateTimeParts = transactionDate.split(" "); // Pisahkan tanggal dan waktu
-    transactionDate = dateTimeParts[0]; // Ambil hanya bagian tanggal
-}
+                        let dateTimeParts = transactionDate.split(" "); // Pisahkan tanggal dan waktu
+                        transactionDate = dateTimeParts[0]; // Ambil hanya bagian tanggal
+                    }
 
-let dateParts = transactionDate.split("/");
-if (dateParts.length === 3) {
-    normalizedDate = `${parseInt(dateParts[0])}/${parseInt(dateParts[1])}/${dateParts[2]}`;
-    
-    if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
-        total += transactionValue;
-    }
-}
+                    // Konversi tanggal ke format yang konsisten
+                    let dateParts = transactionDate.split("/");
+                    if (dateParts.length === 3) {
+                        let day = parseInt(dateParts[0]); 
+                        let month = parseInt(dateParts[1]); 
+                        let year = dateParts[2];
+
+                        normalizedDate = `${day}/${month}/${year}`;
+                    } 
+                    // Jika format tanggal adalah serial number dari Google Sheets
+                    else if (!isNaN(transactionDate)) {
+                        let serialNumber = parseFloat(transactionDate);
+                        let dateFromSerial = new Date((serialNumber - 25569) * 86400 * 1000);
+                        normalizedDate = dateFromSerial.toLocaleDateString("id-ID").replace(/\./g, '/');
+                    }
+
+                    // Cek apakah tanggal transaksi sama dengan hari ini dan tambahkan nilai transaksi
+                    if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
+                        total += transactionValue;
+                    }
 
                     console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Normalized = ${normalizedDate}, Nilai = ${transactionValue}`);
                 });
