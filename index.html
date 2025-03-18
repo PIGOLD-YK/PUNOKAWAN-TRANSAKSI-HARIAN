@@ -30,7 +30,7 @@
         async function fetchData() {
             const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
             const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-            const range = "DataTransaksi!G:A";
+            const range = "DataTransaksi!G:G";
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
             
             try {
@@ -63,11 +63,11 @@
     </script>
 </head>
 <body>
-    <h1>Data Transaksi PUNOKAWAN GROUP</h1>
+    <h1>Data Transaksi Punokawan Group</h1>
     <div class="time">
-        <p><span id="date">--</span></P>
+        <p>Tanggal: <span id="date">--</span> | Waktu: <span id="time">--</span></p>
     </div>
-    <h2>Transaksi / Hari Ini</h2>
+    <h2>Akumulasi Hari Ini</h2>
     <p class="amount" id="amount">Memuat data...</p>
     <p class="footer">Powered By PIGOLD th 2025</p>
 </body>
