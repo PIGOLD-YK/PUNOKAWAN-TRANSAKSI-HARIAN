@@ -38,24 +38,30 @@
                 const response = await fetch(url);
                 const data = await response.json();
 
-                if (!data.values) {
+                if (!data.values || data.values.length === 0) {
                     document.getElementById("amount").innerText = "Data tidak ditemukan";
                     return;
                 }
 
                 const today = new Date();
-                const todayDate = today.toLocaleDateString('id-ID'); // Format: dd/mm/yyyy
+                const todayDateString = today.toLocaleDateString('id-ID'); // Format: dd/mm/yyyy
+                console.log("Hari ini:", todayDateString); // Debugging
+
                 let total = 0;
+                data.values.forEach((row, index) => {
+                    if (index === 0) return; // Lewati header jika ada
 
-                data.values.forEach(row => {
-                    let transactionDate = row[0]; // Kolom A (Tanggal)
-                    let transactionValue = parseFloat(row[6]); // Kolom G (Nilai Transaksi)
+                    let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
+                    let transactionValue = row[6] ? parseFloat(row[6]) : 0; // Kolom G (Nilai Transaksi)
 
-                    if (transactionDate === todayDate && !isNaN(transactionValue)) {
+                    console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Nilai = ${transactionValue}`);
+
+                    if (transactionDate === todayDateString && !isNaN(transactionValue)) {
                         total += transactionValue;
                     }
                 });
 
+                console.log("Total transaksi hari ini:", total);
                 document.getElementById("amount").innerText = `Rp ${total.toLocaleString('id-ID')}`;
             } catch (error) {
                 console.error("Error fetching data: ", error);
@@ -83,7 +89,7 @@
 <body>
     <h1>Data Transaksi Punokawan GROUP</h1>
     <div class="time">
-        <p><span id="date">--</span> | Waktu: <span id="time">--</span></p>
+        <p>Tanggal: <span id="date">--</span> | Waktu: <span id="time">--</span></p>
     </div>
     <h2>Akumulasi Hari Ini</h2>
     <p class="amount" id="amount">Memuat data...</p>
