@@ -29,10 +29,10 @@
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
         const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const range = "DataTransaksi!A:G"; // Ambil data dari kolom A (Tanggal) dan kolom G (Nilai transaksi)
+        const range = "DataTransaksi!A:G"; // Mengambil kolom A (Tanggal) dan G (Nilai transaksi)
 
         async function fetchData() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            const url = https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey};
             
             try {
                 const response = await fetch(url);
@@ -45,7 +45,7 @@
 
                 console.log("Data API:", data.values); // Debugging untuk melihat format asli dari API
 
-                // Ambil tanggal hari ini dalam format dd/mm/yyyy
+                // Ambil tanggal hari ini dalam format yang sesuai
                 const today = new Date();
                 const todayFormatted = today.toLocaleDateString("id-ID").replace(/\./g, '/'); // Format d/m/yyyy atau dd/mm/yyyy
 
@@ -56,27 +56,41 @@
                     if (index === 0) return; // Lewati header jika ada
 
                     let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
-                    let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
-                    let normalizedDate = ""; // Deklarasikan di awal untuk menghindari error
+                    let transactionValue = row[6] ? row[6].replace(/,/g, '').replace(/\s/g, '') : "0"; // Kolom G (Nilai Transaksi)
+                    
+                    let parsedValue = parseFloat(transactionValue);
+                    if (isNaN(parsedValue)) parsedValue = 0;
 
-                    // Pastikan format tanggal tetap konsisten (dd/mm/yyyy)
-                    let dateParts = transactionDate.split("/");
-                    if (dateParts.length === 3) {
-                        normalizedDate = `${parseInt(dateParts[0])}/${parseInt(dateParts[1])}/${dateParts[2]}`;
-                        if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
-                            total += transactionValue;
-                        }
+                    let normalizedDate = normalizeDate(transactionDate);
+
+                    if (normalizedDate === todayFormatted) {
+                        total += parsedValue;
                     }
 
-                    console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Normalized = ${normalizedDate}, Nilai = ${transactionValue}`);
+                    console.log(Data ke-${index}: Tanggal = ${transactionDate}, Normalized = ${normalizedDate}, Nilai = ${parsedValue});
                 });
 
                 console.log("Total transaksi hari ini:", total);
-                document.getElementById("amount").innerText = `Rp ${total.toLocaleString('id-ID')}`;
+                document.getElementById("amount").innerText = Rp ${total.toLocaleString('id-ID')};
             } catch (error) {
                 console.error("Error fetching data: ", error);
                 document.getElementById("amount").innerText = "Gagal mengambil data";
             }
+        }
+
+        function normalizeDate(dateString) {
+            if (!dateString) return "";
+
+            // Cek jika tanggal dalam format yang bisa langsung dikenali
+            let dateParts = dateString.split("/");
+            if (dateParts.length === 3) {
+                let day = parseInt(dateParts[0]);
+                let month = parseInt(dateParts[1]);
+                let year = dateParts[2];
+
+                return ${day}/${month}/${year};
+            }
+            return "";
         }
 
         function updateDateTime() {
@@ -104,7 +118,7 @@
     </div>
     <h2>Transaksi Hari Ini</h2>
     <p class="amount" id="amount">Memuat data...</p>
-    <p>NIlai transaksi per hari tidak boleh lebih dari deposit yang ada, jika sudah mendekati nilai deposit konfirmasi dengan owner</p>
+    <p>Nilai transaksi per hari tidak boleh lebih dari deposit yang ada. Jika sudah mendekati nilai deposit, konfirmasi dengan owner.</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
 </body>
 </html>
