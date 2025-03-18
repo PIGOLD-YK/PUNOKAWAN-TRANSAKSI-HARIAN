@@ -3,103 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akumulasi Transaksi Punokawan Group</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.0/papaparse.min.js"></script>
+    <title>Data Transaksi Punokawan Group</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        h1 { margin-bottom: 5px; }
-        h2 { margin-top: 5px; color: #555; }
-        h3 { margin-top: 30px; color: #333; }
-        #totalSum { font-size: 2em; color: green; }
-        footer { margin-top: 50px; font-size: 0.9em; color: #777; }
+        body {
+            background-color: gold;
+            color: black;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            margin: 10px 0;
+        }
+        #total {
+            font-size: 2em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-
-    <h1>Akumulasi Transaksi Punokawan Group 4</h1>
-    <h2 id="currentDate"></h2>
-    <h3>Total Transaksi Hari Ini:</h3>
-    <div id="totalSum">Rp 0</div>
-    <footer>Powered By PIGOLD th 2025</footer>
-
+    <h1>Data Transaksi Punokawan Group</h1>
+    <h2 id="date">Tanggal: -- | Waktu: --</h2>
+    <h3>Akumulasi Hari Ini</h3>
+    <h1 id="total">Loading...</h1>
+    <p><strong>Powered By PIGOLD th 2025</strong></p>
+    
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY/edit?resourcekey=&gid=497270854#gid=497270854';
+        const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
+        const sheetName = "DataTransaksi";
+        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
+        const range = "G:G"; // Kolom transaksi
 
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
-        document.getElementById('currentDate').textContent = today.toLocaleDateString('id-ID', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-
-        function formatRupiah(angka) {
-            return angka.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
+        async function fetchTransactionData() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!${range}?key=${apiKey}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.values) {
+                    updateTotal(data.values);
+                } else {
+                    document.getElementById("total").innerText = "Data tidak ditemukan";
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById("total").innerText = "Gagal mengambil data";
+            }
         }
 
-        fetch(csvUrl)
-            .then(response => response.text())
-            .then(csvData => {
-                Papa.parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        console.log("Data CSV Terbaca:", results.data);
+        function updateTotal(values) {
+            let total = 0;
+            const now = new Date();
+            const today = now.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            const time = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            
+            values.forEach(row => {
+                let amount = parseFloat(row[0]);
+                if (!isNaN(amount)) {
+                    total += amount;
+                }
+            });
+            document.getElementById("date").innerText = `Tanggal: ${today} | Waktu: ${time}`;
+            document.getElementById("total").innerText = formatRupiah(total);
+        }
 
-                        if (results.data.length === 0) {
-                            console.error("CSV kosong atau tidak terbaca dengan baik.");
-                            return;
-                        }
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(angka);
+        }
 
-                        const data = results.data;
-                        let total = 0;
-
-                        data.forEach(row => {
-                            console.log("Data Baris:", row);
-
-                            // Cek apakah kolom 'Tanggal' dan 'harga Jual Rupiah (Rp)' ada
-                            if (!row['Tanggal'] || !row['Harga Jual Rupiah (Rp)']) {
-                                console.warn("Baris di-skip karena tidak memiliki data yang lengkap:", row);
-                                return;
-                            }
-
-                            // Normalisasi format tanggal (pastikan dari format DD-MM-YYYY atau YYYY-MM-DD)
-                            let rowDate = new Date(row['Tanggal']);
-                            if (isNaN(rowDate)) {
-                                const parts = row['Tanggal'].split('-');
-                                if (parts.length === 3) {
-                                    rowDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                                }
-                            }
-
-                            // Pastikan tanggal valid
-                            if (isNaN(rowDate)) {
-                                console.warn("Format tanggal tidak dikenali:", row['Tanggal']);
-                                return;
-                            }
-
-                            const rowDateStr = rowDate.toISOString().split('T')[0];
-
-                            // Pastikan nilai transaksi valid dan dalam bentuk angka
-                            let transactionValue = parseFloat(row['Harga Jual Rupiah (Rp)']);
-                            if (isNaN(transactionValue)) {
-                                console.warn("Nilai transaksi tidak valid:", row['Harga Jual Rupiah (Rp)']);
-                                return;
-                            }
-
-                            // Jika tanggal sesuai dengan hari ini, tambahkan ke total
-                            if (rowDateStr === todayStr) {
-                                total += transactionValue;
-                                console.log("Transaksi ditambahkan:", transactionValue);
-                            }
-                        });
-
-                        console.log("Total transaksi hari ini:", total);
-                        document.getElementById('totalSum').textContent = formatRupiah(total);
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching or parsing data:', error));
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchTransactionData();
+            setInterval(fetchTransactionData, 60000); // Update setiap 60 detik
+        });
     </script>
-
 </body>
 </html>
