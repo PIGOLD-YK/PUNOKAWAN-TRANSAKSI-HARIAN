@@ -30,42 +30,50 @@
         async function fetchData() {
             const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
             const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-            const range = "DataTransaksi!G:A";
+            const range = "DataTransaksi!G:A"; // Kolom G: Nominal, Kolom A: Tanggal
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
             
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+                
                 const today = new Date();
-                const formattedDate = today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                const formattedTime = today.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                document.getElementById("date").innerText = formattedDate;
-                document.getElementById("time").innerText = formattedTime;
-
+                const formattedDate = today.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                document.getElementById("date").innerText = today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                
+                let total = 0;
                 if (data.values) {
-                    let total = 0;
                     data.values.forEach(row => {
-                        let value = parseFloat(row[0]);
-                        if (!isNaN(value)) {
-                            total += value;
+                        if (row.length >= 2) {
+                            let value = parseFloat(row[0]);
+                            let dateValue = row[1];
+                            if (!isNaN(value) && dateValue === formattedDate) {
+                                total += value;
+                            }
                         }
                     });
-                    document.getElementById("amount").innerText = `Rp ${total.toLocaleString('id-ID')}`;
-                } else {
-                    document.getElementById("amount").innerText = "Data tidak ditemukan";
                 }
+                document.getElementById("amount").innerText = `Rp ${total.toLocaleString('id-ID')}`;
             } catch (error) {
+                document.getElementById("amount").innerText = "Gagal mengambil data";
                 console.error("Error fetching data: ", error);
             }
         }
+        
+        function updateTime() {
+            const now = new Date();
+            document.getElementById("time").innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        
         setInterval(fetchData, 60000); // Update setiap 1 menit
-        window.onload = fetchData;
+        setInterval(updateTime, 1000); // Update waktu setiap detik
+        window.onload = () => { fetchData(); updateTime(); };
     </script>
 </head>
 <body>
     <h1>Data Transaksi Punokawan GROUP</h1>
     <div class="time">
-        <p><span id="date">--</span> | Pukul: <span id="time">--</span></p>
+        <p>Tanggal: <span id="date">--</span> | Waktu: <span id="time">--</span></p>
     </div>
     <h2>Akumulasi Hari Ini</h2>
     <p class="amount" id="amount">Memuat data...</p>
