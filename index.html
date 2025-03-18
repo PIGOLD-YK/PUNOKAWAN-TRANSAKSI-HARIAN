@@ -60,13 +60,20 @@
                     let normalizedDate = ""; // Deklarasikan di awal untuk menghindari error
 
                     // Pastikan format tanggal tetap konsisten (dd/mm/yyyy)
-                    let dateParts = transactionDate.split("/");
-                    if (dateParts.length === 3) {
-                        normalizedDate = `${parseInt(dateParts[0])}/${parseInt(dateParts[1])}/${dateParts[2]}`;
-                        if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
-                            total += transactionValue;
-                        }
-                    }
+                    if (transactionDate.includes(" ")) {
+    // Jika ada jam (format: "dd/mm/yyyy hh:mm:ss")
+    let dateTimeParts = transactionDate.split(" "); // Pisahkan tanggal dan waktu
+    transactionDate = dateTimeParts[0]; // Ambil hanya bagian tanggal
+}
+
+let dateParts = transactionDate.split("/");
+if (dateParts.length === 3) {
+    normalizedDate = `${parseInt(dateParts[0])}/${parseInt(dateParts[1])}/${dateParts[2]}`;
+    
+    if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
+        total += transactionValue;
+    }
+}
 
                     console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Normalized = ${normalizedDate}, Nilai = ${transactionValue}`);
                 });
