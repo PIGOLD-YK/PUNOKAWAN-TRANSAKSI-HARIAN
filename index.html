@@ -3,92 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Transaksi Punokawan Group</title>
+    <title>Data Transaksi Harian</title>
     <style>
         body {
             background-color: yellow;
             text-align: center;
             font-family: Arial, sans-serif;
         }
-        h1 {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        h2 {
-            font-size: 22px;
-        }
-        h3 {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
+        h1, h2, h3 {
+            color: black;
         }
     </style>
+</head>
+<body>
+    <h1>Data Transaksi</h1>
+    <h2>PUNOKAWAN GROUP</h2>
+    <h3 id="datetime"></h3>
+    <h3>Transaksi / Hari Ini</h3>
+    <h1 id="totalTransaksi">Rp 0</h1>
+    <p>Powered By PIGOLD th 2025</p>
+    
     <script>
         async function fetchData() {
-            const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY"; // ID Spreadsheet
-            const sheetName = "DataTransaksi";
-            const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A"; // Ganti dengan API Key Anda
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!G:G?key=${apiKey}`;
-
+            const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
+            const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
+            const range = "DataTransaksi!A:G"; // Pastikan kolom tanggal ada di kolom A dan transaksi di kolom G
+            
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-
-                if (!data.values || data.values.length === 0) {
+                
+                if (!data.values) {
                     document.getElementById("totalTransaksi").innerText = "Rp 0";
                     return;
                 }
-
-                // Menghitung total transaksi dari kolom G
-                let total = data.values.slice(1) // Lewati header jika ada
-                    .flat()
-                    .map(value => parseFloat(value) || 0)
-                    .reduce((acc, val) => acc + val, 0);
-
-                // Format angka ke Rupiah
-                let formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(total);
                 
-                // Menampilkan total transaksi
-                document.getElementById("totalTransaksi").innerText = formattedTotal;
+                const today = new Date().toISOString().split('T')[0];
+                let total = 0;
+                
+                data.values.forEach(row => {
+                    const rowDate = row[0]; // Pastikan kolom A berisi tanggal
+                    const amount = parseFloat(row[6] || 0); // Pastikan kolom G berisi angka
+                    
+                    if (rowDate === today) {
+                        total += amount;
+                    }
+                });
+                
+                document.getElementById("totalTransaksi").innerText = `Rp ${total.toLocaleString('id-ID')}`;
             } catch (error) {
-                console.error("Gagal mengambil data:", error);
-                document.getElementById("totalTransaksi").innerText = "Gagal memuat data";
+                console.error("Error fetching data:", error);
             }
         }
-
+        
         function updateDateTime() {
             const now = new Date();
-            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-
-            const dayName = days[now.getDay()];
-            const date = now.getDate();
-            const month = months[now.getMonth()];
-            const year = now.getFullYear();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-
-            document.getElementById("tanggalWaktu").innerText = `${dayName}, ${date} ${month} ${year} | Waktu: ${hours}:${minutes}:${seconds}`;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById("datetime").innerText = now.toLocaleDateString('id-ID', options);
         }
-
+        
+        updateDateTime();
+        fetchData();
         setInterval(updateDateTime, 1000);
-        window.onload = function() {
-            fetchData();
-            updateDateTime();
-        };
+        setInterval(fetchData, 60000); // Update data setiap 1 menit
     </script>
-</head>
-<body>
-    <h1>Data Transaksi 
-        <p>PUNOKAWAN GROUP</p>
-    </h1>
-    <h2 id="tanggalWaktu"></h2>
-    <h2>Transaksi / Hari Ini</h2>
-    <h3 id="totalTransaksi">Memuat...</h3>
-    <p class="footer">Powered By PIGOLD th 2025</p>
 </body>
 </html>
