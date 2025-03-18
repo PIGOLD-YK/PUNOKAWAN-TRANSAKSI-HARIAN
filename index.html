@@ -45,8 +45,10 @@
 
                 console.log("Data API:", data.values); // Debugging untuk melihat format asli dari API
 
+                // Ambil tanggal hari ini dalam format dd/mm/yyyy
                 const today = new Date();
-                const todayFormatted = today.toLocaleDateString('id-ID'); // Format dd/mm/yyyy
+                const todayFormatted = today.toLocaleDateString("id-ID").replace(/\./g, '/'); // Format d/m/yyyy atau dd/mm/yyyy
+
                 console.log("Tanggal Hari Ini:", todayFormatted); // Debugging
 
                 let total = 0;
@@ -56,11 +58,16 @@
                     let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
                     let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
 
-                    console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Nilai = ${transactionValue}`);
-
-                    if (transactionDate === todayFormatted && !isNaN(transactionValue)) {
-                        total += transactionValue;
+                    // Pastikan format tanggal tetap konsisten (dd/mm/yyyy)
+                    let dateParts = transactionDate.split("/");
+                    if (dateParts.length === 3) {
+                        let normalizedDate = `${parseInt(dateParts[0])}/${parseInt(dateParts[1])}/${dateParts[2]}`;
+                        if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
+                            total += transactionValue;
+                        }
                     }
+
+                    console.log(`Data ke-${index}: Tanggal = ${transactionDate}, Normalized = ${normalizedDate}, Nilai = ${transactionValue}`);
                 });
 
                 console.log("Total transaksi hari ini:", total);
@@ -89,7 +96,7 @@
     </script>
 </head>
 <body>
-    <h1>Data Transaksi PUNOKAWAN GROUP 4</h1>
+    <h1>Data Transaksi PUNOKAWAN GROUP 5</h1>
     <div class="time">
         <p><span id="date">--</span></p>
         <p><span id="time">--</span></p>
