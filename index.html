@@ -25,44 +25,38 @@
     
     <script>
         async function fetchData() {
-            const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-            const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
-            const range = "DataTransaksi!A:G"; // Pastikan kolom tanggal ada di kolom A dan transaksi di kolom G
-            
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (!data.values) {
-                    document.getElementById("totalTransaksi").innerText = "Rp 0";
-                    return;
-                }
-                
-                const today = new Date().toISOString().split('T')[0];
-                let total = 0;
-                
-                data.values.forEach(row => {
-                    const rowDate = row[0]; // Pastikan kolom A berisi tanggal
-                    const amount = parseFloat(row[6] || 0); // Pastikan kolom G berisi angka
-                    
-                    if (rowDate === today) {
-                        total += amount;
-                    }
-                });
-                
-                document.getElementById("totalTransaksi").innerText = `Rp ${total.toLocaleString('id-ID')}`;
-            } catch (error) {
-                console.error("Error fetching data:", error);
+    const spreadsheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
+    const range = "DataTransaksi!A:G"; // Mengambil seluruh kolom yang berisi tanggal dan transaksi
+    const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.values) {
+            throw new Error("Data tidak ditemukan");
+        }
+
+        const rows = data.values;
+        const today = new Date().toLocaleDateString("id-ID"); // Format: DD/MM/YYYY
+        let totalTransaksi = 0;
+
+        for (let i = 1; i < rows.length; i++) { // Mulai dari baris kedua (baris pertama adalah header)
+            const rowDate = new Date(rows[i][0]).toLocaleDateString("id-ID"); // Asumsikan tanggal ada di kolom A
+            const transaksi = parseFloat(rows[i][6]?.replace(/[^0-9.-]+/g, "")) || 0; // Kolom G (indeks 6)
+
+            if (rowDate === today) {
+                totalTransaksi += transaksi;
             }
         }
-        
-        function updateDateTime() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            document.getElementById("datetime").innerText = now.toLocaleDateString('id-ID', options);
-        }
+
+        document.getElementById("total-transaksi").innerText = `Rp ${totalTransaksi.toLocaleString("id-ID")}`;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        document.getElementById("total-transaksi").innerText = "Data tidak tersedia";
+    }
+}
         
         updateDateTime();
         fetchData();
