@@ -29,7 +29,7 @@
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
         const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const range = "DataTransaksi!A:G"; // Mengambil data dari kolom A (Tanggal) dan kolom G (Nilai transaksi)
+        const range = "DataTransaksi!G:G"; // Mengambil data dari kolom A (Tanggal) dan kolom G (Nilai transaksi)
 
         async function fetchData() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
@@ -89,7 +89,8 @@
 <body>
     <h1>Data Transaksi PUNOKAWAN GROUP</h1>
     <div class="time">
-        <p><span id="date">--</span> | Pukul: <span id="time">--</span></p>
+        <p><span id="date">--</span></p>
+        <p><span id="time">--</span></p>
     </div>
     <h2>Akumulasi Hari Ini</h2>
     <p class="amount" id="amount">Memuat data...</p>
