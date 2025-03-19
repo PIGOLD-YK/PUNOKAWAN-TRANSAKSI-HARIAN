@@ -32,13 +32,11 @@
         }
     </style>
     <script>
-        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
+        const apiKey = "YOUR_GOOGLE_API_KEY";  // Ganti dengan API Key Anda
 
-        // Data transaksi
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
         const rangeTransaksi = "DataTransaksi!A:G";
 
-        // Data deposit
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
@@ -47,6 +45,8 @@
             
             try {
                 const response = await fetch(url);
+                if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+                
                 const data = await response.json();
 
                 if (!data.values || data.values.length === 0) {
@@ -56,35 +56,10 @@
 
                 console.log("Data API:", data.values);
 
-                const today = new Date();
-                const todayFormatted = today.toLocaleDateString("id-ID").replace(/\./g, '/');
-
                 let total = 0;
-                data.values.forEach((row, index) => {
-                    if (index === 0) return;
-
-                    let transactionDate = row[0] ? row[0].trim() : "";
+                data.values.slice(1).forEach(row => {
                     let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0;
-                    let normalizedDate = "";
-
-                    if (transactionDate.includes(" ")) {
-                        transactionDate = transactionDate.split(" ")[0];
-                    }
-
-                    let dateParts = transactionDate.split("/");
-                    if (dateParts.length === 3) {
-                        let day = parseInt(dateParts[0]); 
-                        let month = parseInt(dateParts[1]); 
-                        let year = dateParts[2];
-
-                        normalizedDate = `${day}/${month}/${year}`;
-                    } else if (!isNaN(transactionDate)) {
-                        let serialNumber = parseFloat(transactionDate);
-                        let dateFromSerial = new Date((serialNumber - 25569) * 86400 * 1000);
-                        normalizedDate = dateFromSerial.toLocaleDateString("id-ID").replace(/\./g, '/');
-                    }
-
-                    if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
+                    if (!isNaN(transactionValue)) {
                         total += transactionValue;
                     }
                 });
@@ -101,6 +76,8 @@
 
             try {
                 const response = await fetch(url);
+                if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+                
                 const data = await response.json();
 
                 if (!data.values || data.values.length === 0) {
@@ -110,22 +87,13 @@
 
                 console.log("Data Deposit API:", data.values);
 
-                let lastDeposit = null;
+                let lastDeposit = data.values.reverse().find(row => row[0] && !isNaN(parseFloat(row[0])));
 
-                for (let i = data.values.length - 1; i >= 0; i--) {
-                    if (data.values[i][0]) {
-                        let value = data.values[i][0].replace(/[^0-9]/g, ''); // Hapus karakter selain angka
-                        if (value !== "") {
-                            lastDeposit = parseFloat(value);
-                            break;
-                        }
-                    }
-                }
-
-                if (lastDeposit === null) {
-                    document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
+                if (lastDeposit) {
+                    let depositValue = parseFloat(lastDeposit[0]);
+                    document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
                 } else {
-                    document.getElementById("deposit").innerText = `Rp ${lastDeposit.toLocaleString('id-ID')}`;
+                    document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
                 }
             } catch (error) {
                 console.error("Error fetching deposit: ", error);
@@ -163,7 +131,7 @@
     <p>______________________________</p>
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p>______________________________</p>
-    <h2>DEPOSIT:</h2>
+    <h2>Batas Transaksi Hari Ini:</h2>
     <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
