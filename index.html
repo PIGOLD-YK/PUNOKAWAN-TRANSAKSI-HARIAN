@@ -110,16 +110,23 @@
 
                 console.log("Data Deposit API:", data.values);
 
-                let lastDeposit = 0;
+                let lastDeposit = null;
 
                 for (let i = data.values.length - 1; i >= 0; i--) {
-                    if (data.values[i][0] && !isNaN(data.values[i][0].replace(/,/g, ''))) {
-                        lastDeposit = parseFloat(data.values[i][0].replace(/,/g, ''));
-                        break;
+                    if (data.values[i][0]) {
+                        let value = data.values[i][0].replace(/[^0-9]/g, ''); // Hapus karakter selain angka
+                        if (value !== "") {
+                            lastDeposit = parseFloat(value);
+                            break;
+                        }
                     }
                 }
 
-                document.getElementById("deposit").innerText = `Rp ${lastDeposit.toLocaleString('id-ID')}`;
+                if (lastDeposit === null) {
+                    document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
+                } else {
+                    document.getElementById("deposit").innerText = `Rp ${lastDeposit.toLocaleString('id-ID')}`;
+                }
             } catch (error) {
                 console.error("Error fetching deposit: ", error);
                 document.getElementById("deposit").innerText = "Gagal mengambil deposit";
@@ -156,7 +163,7 @@
     <p>______________________________</p>
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p>______________________________</p>
-    <h2>Batas Transaksi hari ini:</h2>
+    <h2>DEPOSIT:</h2>
     <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
