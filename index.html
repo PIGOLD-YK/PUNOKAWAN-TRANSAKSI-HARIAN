@@ -23,6 +23,7 @@
             padding: 10px;
             border-radius: 10px;
             display: inline-block;
+            background-color: lightgray;
         }
         .deposit {
             font-size: 24px;
@@ -65,11 +66,9 @@
                     return;
                 }
 
-                console.log("Data API:", data.values);
-
                 totalTransaksi = 0;
-                data.values.slice(1).forEach(row => {
-                    let transactionValue = row[0] ? parseFloat(row[0].replace(/,/g, '')) : 0;
+                data.values.forEach(row => {
+                    let transactionValue = parseFloat(row[0]?.replace(/,/g, '') || 0);
                     if (!isNaN(transactionValue)) {
                         totalTransaksi += transactionValue;
                     }
@@ -97,17 +96,10 @@
                     return;
                 }
 
-                console.log("Data Deposit API:", data.values);
+                let lastDeposit = data.values.reverse().find(row => !isNaN(parseFloat(row[0])));
+                depositValue = lastDeposit ? parseFloat(lastDeposit[0]) : 0;
 
-                let lastDeposit = data.values.reverse().find(row => row[0] && !isNaN(parseFloat(row[0])));
-
-                if (lastDeposit) {
-                    depositValue = parseFloat(lastDeposit[0]);
-                    document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
-                } else {
-                    document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
-                }
-
+                document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
                 updateWarning();
             } catch (error) {
                 console.error("Error fetching deposit: ", error);
@@ -123,4 +115,55 @@
                 amountElement.style.backgroundColor = "gray";
                 warningElement.innerText = "Menunggu data deposit...";
                 return;
-            
+            }
+
+            if (totalTransaksi > depositValue) {
+                amountElement.style.backgroundColor = "red";
+                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI deposit!";
+            } else if (totalTransaksi >= depositValue * 0.8) {
+                amountElement.style.backgroundColor = "yellow";
+                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas deposit.";
+            } else {
+                amountElement.style.backgroundColor = "lightgreen";
+                warningElement.innerText = "✅ Aman: Transaksi masih dalam batas deposit.";
+            }
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const timeString = now.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            document.getElementById("date").innerText = dateString;
+            document.getElementById("time").innerText = timeString;
+        }
+
+        setInterval(fetchData, 60000);
+        setInterval(fetchDeposit, 60000);
+        setInterval(updateDateTime, 1000);
+
+        window.onload = () => {
+            fetchData();
+            fetchDeposit();
+            updateDateTime();
+        };
+    </script>
+</head>
+<body>
+    <h1>Data Transaksi [PUNOKAWAN GROUP]</h1>
+    <h2>Transaksi Hari Ini</h2>
+    <div class="time">
+        <p><span id="date">--</span></p>
+        <p><span id="time">--</span></p>
+    </div>
+    <p>______________________________</p>
+    <h2 class="amount" id="amount">Memuat data...</h2>
+    <p id="warning" class="warning">Menunggu data...</p>
+    <p>______________________________</p>
+    <h2>DEPOSIT:</h2>
+    <h2 class="deposit" id="deposit">Memuat data...</h2>
+    <p>______________________________</p>
+    <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
+    <p class="footer"><i>Design By PIGOLD 2025</i></p>
+</body>
+</html>
