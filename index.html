@@ -20,6 +20,9 @@
         .amount {
             font-size: 28px;
             font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
         }
         .deposit {
             font-size: 24px;
@@ -30,17 +33,6 @@
             font-size: 20px;
             font-weight: bold;
             margin-top: 10px;
-            padding: 10px;
-            display: none;
-            border-radius: 5px;
-        }
-        .warning.yellow {
-            background-color: yellow;
-            color: black;
-        }
-        .warning.red {
-            background-color: red;
-            color: white;
         }
         .footer {
             margin-top: 20px;
@@ -48,16 +40,16 @@
         }
     </style>
     <script>
-        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A"; // Ganti dengan API Key yang benar
+        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
 
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!G:G"; // Pastikan sheet dan range benar
+        const rangeTransaksi = "DataTransaksi!G:G";
 
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
         let totalTransaksi = 0;
-        let nilaiDeposit = 0;
+        let depositValue = 0;
 
         async function fetchData() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdTransaksi}/values/${rangeTransaksi}?key=${apiKey}`;
@@ -84,7 +76,7 @@
                 });
 
                 document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
-                checkWarning();
+                updateWarning();
             } catch (error) {
                 console.error("Error fetching data: ", error);
                 document.getElementById("amount").innerText = "Gagal mengambil data";
@@ -110,70 +102,25 @@
                 let lastDeposit = data.values.reverse().find(row => row[0] && !isNaN(parseFloat(row[0])));
 
                 if (lastDeposit) {
-                    nilaiDeposit = parseFloat(lastDeposit[0]);
-                    document.getElementById("deposit").innerText = `Rp ${nilaiDeposit.toLocaleString('id-ID')}`;
+                    depositValue = parseFloat(lastDeposit[0]);
+                    document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
                 } else {
                     document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
                 }
 
-                checkWarning();
+                updateWarning();
             } catch (error) {
                 console.error("Error fetching deposit: ", error);
                 document.getElementById("deposit").innerText = "Gagal mengambil deposit";
             }
         }
 
-        function checkWarning() {
+        function updateWarning() {
+            const amountElement = document.getElementById("amount");
             const warningElement = document.getElementById("warning");
+
+            if (depositValue === 0) {
+                amountElement.style.backgroundColor = "gray";
+                warningElement.innerText = "Menunggu data deposit...";
+                return;
             
-            if (totalTransaksi >= nilaiDeposit) {
-                warningElement.innerText = "⚠️ PERINGATAN: Transaksi sudah melebihi deposit!";
-                warningElement.className = "warning red";
-                warningElement.style.display = "block";
-            } else if (totalTransaksi >= nilaiDeposit * 0.8) {
-                warningElement.innerText = "⚠️ PERINGATAN: Transaksi hampir mencapai batas deposit!";
-                warningElement.className = "warning yellow";
-                warningElement.style.display = "block";
-            } else {
-                warningElement.style.display = "none";
-            }
-        }
-
-        function updateDateTime() {
-            const now = new Date();
-            const dateString = now.toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            const timeString = now.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            document.getElementById("date").innerText = dateString;
-            document.getElementById("time").innerText = timeString;
-        }
-
-        setInterval(fetchData, 60000);
-        setInterval(fetchDeposit, 60000);
-        setInterval(updateDateTime, 1000);
-
-        window.onload = () => {
-            fetchData();
-            fetchDeposit();
-            updateDateTime();
-        };
-    </script>
-</head>
-<body>
-    <h1>Data Transaksi [PUNOKAWAN GROUP]</h1>
-    <h2>Transaksi Hari Ini</h2>
-    <div class="time">
-        <p><span id="date">--</span></p>
-        <p><span id="time">--</span></p>
-    </div>
-    <p>______________________________</p>
-    <h2 class="amount" id="amount">Memuat data...</h2>
-    <p>______________________________</p>
-    <h2>DEPOSIT:</h2>
-    <h2 class="deposit" id="deposit">Memuat data...</h2>
-    <p>______________________________</p>
-    <div id="warning" class="warning"></div>
-    <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
-    <p class="footer"><i>Design By PIGOLD 2025</i></p>
-</body>
-</html>
