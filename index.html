@@ -21,6 +21,11 @@
             font-size: 28px;
             font-weight: bold;
         }
+        .deposit {
+            font-size: 24px;
+            font-weight: bold;
+            color: darkblue;
+        }
         .footer {
             margin-top: 20px;
             font-size: 14px;
@@ -28,11 +33,17 @@
     </style>
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
-        const sheetId = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const range = "DataTransaksi!A:G"; // Ambil data dari kolom A (Tanggal) dan kolom G (Nilai transaksi)
+
+        // Data transaksi
+        const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
+        const rangeTransaksi = "DataTransaksi!A:G";
+
+        // Data deposit
+        const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
+        const rangeDeposit = "PunokawanTransaksi!C:C";
 
         async function fetchData() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdTransaksi}/values/${rangeTransaksi}?key=${apiKey}`;
             
             try {
                 const response = await fetch(url);
@@ -43,29 +54,25 @@
                     return;
                 }
 
-                console.log("Data API:", data.values); // Debugging untuk melihat format asli dari API
+                console.log("Data API:", data.values);
 
-                // Ambil tanggal hari ini dalam format dd/mm/yyyy
                 const today = new Date();
-                const todayFormatted = today.toLocaleDateString("id-ID").replace(/\./g, '/'); // Format d/m/yyyy atau dd/mm/yyyy
+                const todayFormatted = today.toLocaleDateString("id-ID").replace(/\./g, '/');
 
-                console.log("Tanggal Hari Ini:", todayFormatted); // Debugging
+                console.log("Tanggal Hari Ini:", todayFormatted);
 
                 let total = 0;
                 data.values.forEach((row, index) => {
-                    if (index === 0) return; // Lewati header jika ada
+                    if (index === 0) return;
 
-                    let transactionDate = row[0] ? row[0].trim() : ""; // Kolom A (Tanggal)
-                    let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0; // Kolom G (Nilai Transaksi)
-                    let normalizedDate = ""; // Deklarasikan di awal untuk menghindari error
+                    let transactionDate = row[0] ? row[0].trim() : "";
+                    let transactionValue = row[6] ? parseFloat(row[6].replace(/,/g, '')) : 0;
+                    let normalizedDate = "";
 
-                    // Jika tanggal dalam format waktu (misal: "dd/mm/yyyy hh:mm:ss")
                     if (transactionDate.includes(" ")) {
-                        let dateTimeParts = transactionDate.split(" "); // Pisahkan tanggal dan waktu
-                        transactionDate = dateTimeParts[0]; // Ambil hanya bagian tanggal
+                        transactionDate = transactionDate.split(" ")[0];
                     }
 
-                    // Konversi tanggal ke format yang konsisten
                     let dateParts = transactionDate.split("/");
                     if (dateParts.length === 3) {
                         let day = parseInt(dateParts[0]); 
@@ -73,15 +80,12 @@
                         let year = dateParts[2];
 
                         normalizedDate = `${day}/${month}/${year}`;
-                    } 
-                    // Jika format tanggal adalah serial number dari Google Sheets
-                    else if (!isNaN(transactionDate)) {
+                    } else if (!isNaN(transactionDate)) {
                         let serialNumber = parseFloat(transactionDate);
                         let dateFromSerial = new Date((serialNumber - 25569) * 86400 * 1000);
                         normalizedDate = dateFromSerial.toLocaleDateString("id-ID").replace(/\./g, '/');
                     }
 
-                    // Cek apakah tanggal transaksi sama dengan hari ini dan tambahkan nilai transaksi
                     if (normalizedDate === todayFormatted && !isNaN(transactionValue)) {
                         total += transactionValue;
                     }
@@ -97,6 +101,31 @@
             }
         }
 
+        async function fetchDeposit() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdDeposit}/values/${rangeDeposit}?key=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!data.values || data.values.length === 0) {
+                    document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
+                    return;
+                }
+
+                console.log("Data Deposit API:", data.values);
+
+                let lastRow = data.values.length - 1;
+                let lastDeposit = data.values[lastRow][0] ? parseFloat(data.values[lastRow][0].replace(/,/g, '')) : 0;
+
+                console.log("Deposit terakhir:", lastDeposit);
+                document.getElementById("deposit").innerText = `Rp ${lastDeposit.toLocaleString('id-ID')}`;
+            } catch (error) {
+                console.error("Error fetching deposit: ", error);
+                document.getElementById("deposit").innerText = "Gagal mengambil deposit";
+            }
+        }
+
         function updateDateTime() {
             const now = new Date();
             const dateString = now.toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -106,10 +135,13 @@
             document.getElementById("time").innerText = timeString;
         }
 
-        setInterval(fetchData, 60000); // Update transaksi setiap 1 menit
-        setInterval(updateDateTime, 1000); // Update waktu setiap detik
+        setInterval(fetchData, 60000);
+        setInterval(fetchDeposit, 60000);
+        setInterval(updateDateTime, 1000);
+
         window.onload = () => {
             fetchData();
+            fetchDeposit();
             updateDateTime();
         };
     </script>
@@ -122,8 +154,11 @@
         <p><span id="time">--</span></p>
     </div>
     <p>______________________________</p>
-    <h2 class="amount" id="amount">Memuat data... </h2>
-    ______________________________
+    <h2 class="amount" id="amount">Memuat data...</h2>
+    <p>______________________________</p>
+    <h2>DEPOSIT:</h2>
+    <h2 class="deposit" id="deposit">Memuat data...</h2>
+    <p>______________________________</p>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
 </body>
