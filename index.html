@@ -26,6 +26,22 @@
             font-weight: bold;
             color: darkblue;
         }
+        .warning {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 10px;
+            display: none;
+            border-radius: 5px;
+        }
+        .warning.yellow {
+            background-color: yellow;
+            color: black;
+        }
+        .warning.red {
+            background-color: red;
+            color: white;
+        }
         .footer {
             margin-top: 20px;
             font-size: 14px;
@@ -39,6 +55,9 @@
 
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
+
+        let totalTransaksi = 0;
+        let nilaiDeposit = 0;
 
         async function fetchData() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdTransaksi}/values/${rangeTransaksi}?key=${apiKey}`;
@@ -56,15 +75,16 @@
 
                 console.log("Data API:", data.values);
 
-                let total = 0;
+                totalTransaksi = 0;
                 data.values.slice(1).forEach(row => {
                     let transactionValue = row[0] ? parseFloat(row[0].replace(/,/g, '')) : 0;
                     if (!isNaN(transactionValue)) {
-                        total += transactionValue;
+                        totalTransaksi += transactionValue;
                     }
                 });
 
-                document.getElementById("amount").innerText = `Rp ${total.toLocaleString('id-ID')}`;
+                document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
+                checkWarning();
             } catch (error) {
                 console.error("Error fetching data: ", error);
                 document.getElementById("amount").innerText = "Gagal mengambil data";
@@ -90,14 +110,32 @@
                 let lastDeposit = data.values.reverse().find(row => row[0] && !isNaN(parseFloat(row[0])));
 
                 if (lastDeposit) {
-                    let depositValue = parseFloat(lastDeposit[0]);
-                    document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
+                    nilaiDeposit = parseFloat(lastDeposit[0]);
+                    document.getElementById("deposit").innerText = `Rp ${nilaiDeposit.toLocaleString('id-ID')}`;
                 } else {
                     document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
                 }
+
+                checkWarning();
             } catch (error) {
                 console.error("Error fetching deposit: ", error);
                 document.getElementById("deposit").innerText = "Gagal mengambil deposit";
+            }
+        }
+
+        function checkWarning() {
+            const warningElement = document.getElementById("warning");
+            
+            if (totalTransaksi >= nilaiDeposit) {
+                warningElement.innerText = "⚠️ PERINGATAN: Transaksi sudah melebihi deposit!";
+                warningElement.className = "warning red";
+                warningElement.style.display = "block";
+            } else if (totalTransaksi >= nilaiDeposit * 0.8) {
+                warningElement.innerText = "⚠️ PERINGATAN: Transaksi hampir mencapai batas deposit!";
+                warningElement.className = "warning yellow";
+                warningElement.style.display = "block";
+            } else {
+                warningElement.style.display = "none";
             }
         }
 
@@ -134,6 +172,7 @@
     <h2>DEPOSIT:</h2>
     <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
+    <div id="warning" class="warning"></div>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
 </body>
