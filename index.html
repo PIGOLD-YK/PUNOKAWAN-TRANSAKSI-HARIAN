@@ -26,9 +26,9 @@
             background-color: lightgray;
         }
         .deposit {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
-            color: red;
+            color: darkblue;
         }
         .warning {
             font-size: 20px;
@@ -42,15 +42,18 @@
     </style>
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
-
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!A:G";
-
+        const rangeTransaksi = "DataTransaksi!A:G"; // Ambil kolom transaksi (G) dan tanggal (H)
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
         let totalTransaksi = 0;
         let depositValue = 0;
+
+        function getTodayDate() {
+            const now = new Date();
+            return now.toLocaleDateString("id-ID"); // Format: "20/03/2025"
+        }
 
         async function fetchData() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdTransaksi}/values/${rangeTransaksi}?key=${apiKey}`;
@@ -60,21 +63,31 @@
                 if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
                 
                 const data = await response.json();
-
                 if (!data.values || data.values.length === 0) {
                     document.getElementById("amount").innerText = "Data tidak ditemukan";
                     return;
                 }
 
+                const today = getTodayDate();
                 totalTransaksi = 0;
+                let transaksiHariIni = false;
+
                 data.values.forEach(row => {
                     let transactionValue = parseFloat(row[0]?.replace(/,/g, '') || 0);
-                    if (!isNaN(transactionValue)) {
+                    let transactionDate = row[1]?.trim();
+
+                    if (transactionDate === today && !isNaN(transactionValue)) {
                         totalTransaksi += transactionValue;
+                        transaksiHariIni = true;
                     }
                 });
 
-                document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
+                if (!transaksiHariIni) {
+                    document.getElementById("amount").innerText = "Tidak ada transaksi hari ini";
+                } else {
+                    document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
+                }
+
                 updateWarning();
             } catch (error) {
                 console.error("Error fetching data: ", error);
@@ -90,7 +103,6 @@
                 if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
                 
                 const data = await response.json();
-
                 if (!data.values || data.values.length === 0) {
                     document.getElementById("deposit").innerText = "Deposit tidak ditemukan";
                     return;
@@ -119,13 +131,13 @@
 
             if (totalTransaksi > depositValue) {
                 amountElement.style.backgroundColor = "red";
-                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI batas!";
+                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI deposit!";
             } else if (totalTransaksi >= depositValue * 0.8) {
                 amountElement.style.backgroundColor = "yellow";
-                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas.";
+                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas deposit.";
             } else {
                 amountElement.style.backgroundColor = "lightgreen";
-                warningElement.innerText = "✅ Transaksi dalam batas Aman.";
+                warningElement.innerText = "✅ Aman: Transaksi masih dalam batas deposit.";
             }
         }
 
@@ -160,8 +172,8 @@
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p id="warning" class="warning">Menunggu data...</p>
     <p>______________________________</p>
-    <h4>BATAS TRANSAKSI HARIAN:</h4>
-    <h4 class="deposit" id="deposit">Memuat data...</h4>
+    <h2>DEPOSIT:</h2>
+    <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
