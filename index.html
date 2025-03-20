@@ -41,10 +41,10 @@
         }
     </style>
     <script>
-        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4AA"; // Ganti dengan API Key Anda
+        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
 
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!A:G"; // Asumsikan kolom A untuk tanggal dan kolom G untuk nilai transaksi
+        const rangeTransaksi = "DataTransaksi!A:G"; // Sesuaikan dengan rentang data Anda
 
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
@@ -66,15 +66,15 @@
                     return;
                 }
 
-                const today = new Date().toLocaleDateString('id-ID');
+                const today = new Date().toLocaleDateString("id-ID");
                 totalTransaksi = 0;
 
                 data.values.forEach(row => {
-                    const [tanggal, , , , , , nilaiTransaksi] = row;
-                    if (tanggal && nilaiTransaksi) {
-                        const tanggalTransaksi = new Date(tanggal).toLocaleDateString('id-ID');
+                    const [tanggal, , , , , , jumlah] = row;
+                    if (tanggal && jumlah) {
+                        const tanggalTransaksi = new Date(tanggal).toLocaleDateString("id-ID");
                         if (tanggalTransaksi === today) {
-                            const transactionValue = parseFloat(nilaiTransaksi.replace(/,/g, '') || 0);
+                            const transactionValue = parseFloat(jumlah.replace(/,/g, '') || 0);
                             if (!isNaN(transactionValue)) {
                                 totalTransaksi += transactionValue;
                             }
