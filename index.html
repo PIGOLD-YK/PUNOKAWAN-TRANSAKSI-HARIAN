@@ -119,13 +119,13 @@
 
             if (totalTransaksi > depositValue) {
                 amountElement.style.backgroundColor = "red";
-                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI batas!";
+                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI deposit!";
             } else if (totalTransaksi >= depositValue * 0.8) {
                 amountElement.style.backgroundColor = "yellow";
-                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas.";
+                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas deposit.";
             } else {
                 amountElement.style.backgroundColor = "lightgreen";
-                warningElement.innerText = "✅ Transaksi dalam batas Aman.";
+                warningElement.innerText = "✅ Aman: Transaksi masih dalam batas deposit.";
             }
         }
 
@@ -160,8 +160,8 @@
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p id="warning" class="warning">Menunggu data...</p>
     <p>______________________________</p>
-    <h4>BATAS TRANSAKSI HARIAN:</h4>
-    <h4 class="deposit" id="deposit">Memuat data...</h4>
+    <h2>DEPOSIT:</h2>
+    <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
     <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
