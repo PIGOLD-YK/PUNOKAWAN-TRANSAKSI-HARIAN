@@ -1,3 +1,7 @@
+Untuk menampilkan total transaksi harian pada tanggal tertentu, Anda perlu memastikan bahwa data transaksi Anda mencakup informasi tanggal. Misalnya, jika kolom tanggal berada di kolom A dan nilai transaksi berada di kolom G, Anda dapat memodifikasi kode JavaScript Anda untuk menjumlahkan nilai transaksi yang sesuai dengan tanggal hari ini.
+
+Berikut adalah contoh kode lengkap yang telah disesuaikan:
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -41,15 +45,13 @@
         }
     </style>
     <script>
-        const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
-
-        const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!G:G";
-
-        const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
+        const apiKey = "API_KEY_ANDA";
+        const sheetIdTransaksi = "ID_SHEET_TRANSAKSI";
+        const rangeTransaksi = "DataTransaksi!A:G"; // Asumsikan kolom A untuk tanggal dan kolom G untuk nilai transaksi
+        const sheetIdDeposit = "ID_SHEET_DEPOSIT";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
-        let totalTransaksi = 0;
+        let totalTransaksiHariIni = 0;
         let depositValue = 0;
 
         async function fetchData() {
@@ -66,15 +68,23 @@
                     return;
                 }
 
-                totalTransaksi = 0;
+                const today = new Date().toLocaleDateString("id-ID");
+                totalTransaksiHariIni = 0;
+
                 data.values.forEach(row => {
-                    let transactionValue = parseFloat(row[0]?.replace(/,/g, '') || 0);
-                    if (!isNaN(transactionValue)) {
-                        totalTransaksi += transactionValue;
+                    const [tanggal, , , , , , nilaiTransaksi] = row;
+                    if (tanggal && nilaiTransaksi) {
+                        const tanggalTransaksi = new Date(tanggal).toLocaleDateString("id-ID");
+                        if (tanggalTransaksi === today) {
+                            const transactionValue = parseFloat(nilaiTransaksi.replace(/,/g, ''));
+                            if (!isNaN(transactionValue)) {
+                                totalTransaksiHariIni += transactionValue;
+                            }
+                        }
                     }
                 });
 
-                document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
+                document.getElementById("amount").innerText = `Rp ${totalTransaksiHariIni.toLocaleString('id-ID')}`;
                 updateWarning();
             } catch (error) {
                 console.error("Error fetching data: ", error);
@@ -96,7 +106,7 @@
                     return;
                 }
 
-                let lastDeposit = data.values.reverse().find(row => !isNaN(parseFloat(row[0])));
+                const lastDeposit = data.values.reverse().find(row => !isNaN(parseFloat(row[0])));
                 depositValue = lastDeposit ? parseFloat(lastDeposit[0]) : 0;
 
                 document.getElementById("deposit").innerText = `Rp ${depositValue.toLocaleString('id-ID')}`;
@@ -117,10 +127,10 @@
                 return;
             }
 
-            if (totalTransaksi > depositValue) {
+            if (totalTransaksiHariIni > depositValue) {
                 amountElement.style.backgroundColor = "red";
                 warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI batas!";
-            } else if (totalTransaksi >= depositValue * 0.8) {
+            } else if (totalTransaksiHariIni >= depositValue * 0.8) {
                 amountElement.style.backgroundColor = "yellow";
                 warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas.";
             } else {
@@ -162,8 +172,5 @@
     <p>______________________________</p>
     <h4>BATAS TRANSAKSI HARIAN:</h4>
     <h4 class="deposit" id="deposit">Memuat data...</h4>
-    <p>______________________________</p>
-    <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
-    <p class="footer"><i>Design By PIGOLD 2025</i></p>
-</body>
-</html>
+    <p>________________0
+
