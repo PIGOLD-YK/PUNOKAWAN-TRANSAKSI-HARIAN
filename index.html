@@ -43,7 +43,7 @@
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!A:G"; // Ambil kolom transaksi (G) dan tanggal (H)
+        const rangeTransaksi = "DataTransaksi!A:G"; // Ambil kolom tanggal (A) dan transaksi (G)
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
@@ -76,14 +76,8 @@
                 let transaksiHariIni = false;
 
                 data.values.forEach(row => {
-                    let transactionValue = parseFloat(row[0]?.replace(/,/g, '') || 0);
-                    let transactionDate = row[1];
-
-                    // Konversi tanggal jika dalam format angka (serial number Google Sheets)
-                    if (!isNaN(transactionDate)) {
-                        let excelDate = new Date((transactionDate - 25569) * 86400000);
-                        transactionDate = `${String(excelDate.getDate()).padStart(2, '0')}/${String(excelDate.getMonth() + 1).padStart(2, '0')}/${excelDate.getFullYear()}`;
-                    }
+                    let transactionDate = row[0]?.split(" ")[0]; // Ambil hanya bagian tanggal dari format "dd/mm/yyyy h:m:s"
+                    let transactionValue = parseFloat(row[6]?.replace(/,/g, '') || 0); // Kolom G untuk jumlah transaksi
 
                     if (transactionDate === todayFormatted && !isNaN(transactionValue)) {
                         totalTransaksi += transactionValue;
