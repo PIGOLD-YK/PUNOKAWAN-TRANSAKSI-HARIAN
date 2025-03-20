@@ -43,16 +43,19 @@
     <script>
         const apiKey = "AIzaSyCZCnqUu799bOvs4TdGpqA4wnq0KXIvq4A";
         const sheetIdTransaksi = "1WRaA_8OTcR42t01CLehqw20ZN0nWB64xSgSEdl54vIY";
-        const rangeTransaksi = "DataTransaksi!A:G"; // Ambil kolom transaksi (G) dan tanggal (H)
+        const rangeTransaksi = "DataTransaksi!G:A"; // Ambil kolom transaksi (G) dan tanggal (H)
         const sheetIdDeposit = "10MFUJkGrlBhlDt4dQMGRMA8KHmxoG3tFJ2JmLyLncCI";
         const rangeDeposit = "PunokawanTransaksi!C:C";
 
         let totalTransaksi = 0;
         let depositValue = 0;
 
-        function getTodayDate() {
+        function getTodayDateFormatted() {
             const now = new Date();
-            return now.toLocaleDateString("id-ID"); // Format: "20/03/2025"
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0'); // Bulan dimulai dari 0
+            const year = now.getFullYear();
+            return `${day}/${month}/${year}`; // Format: "20/03/2025"
         }
 
         async function fetchData() {
@@ -68,15 +71,21 @@
                     return;
                 }
 
-                const today = getTodayDate();
+                const todayFormatted = getTodayDateFormatted();
                 totalTransaksi = 0;
                 let transaksiHariIni = false;
 
                 data.values.forEach(row => {
                     let transactionValue = parseFloat(row[0]?.replace(/,/g, '') || 0);
-                    let transactionDate = row[1]?.trim();
+                    let transactionDate = row[1];
 
-                    if (transactionDate === today && !isNaN(transactionValue)) {
+                    // Konversi tanggal jika dalam format angka (serial number Google Sheets)
+                    if (!isNaN(transactionDate)) {
+                        let excelDate = new Date((transactionDate - 25569) * 86400000);
+                        transactionDate = `${String(excelDate.getDate()).padStart(2, '0')}/${String(excelDate.getMonth() + 1).padStart(2, '0')}/${excelDate.getFullYear()}`;
+                    }
+
+                    if (transactionDate === todayFormatted && !isNaN(transactionValue)) {
                         totalTransaksi += transactionValue;
                         transaksiHariIni = true;
                     }
@@ -168,14 +177,10 @@
         <p><span id="date">--</span></p>
         <p><span id="time">--</span></p>
     </div>
-    <p>______________________________</p>
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p id="warning" class="warning">Menunggu data...</p>
-    <p>______________________________</p>
     <h2>DEPOSIT:</h2>
     <h2 class="deposit" id="deposit">Memuat data...</h2>
-    <p>______________________________</p>
-    <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
 </body>
 </html>
