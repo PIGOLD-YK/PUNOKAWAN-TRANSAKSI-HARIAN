@@ -86,7 +86,7 @@
                 });
 
                 if (!transaksiHariIni) {
-                    document.getElementById("amount").innerText = "Belum ada transaksi hari ini";
+                    document.getElementById("amount").innerText = "Belum Ada Transaksi";
                 } else {
                     document.getElementById("amount").innerText = `Rp ${totalTransaksi.toLocaleString('id-ID')}`;
                 }
@@ -134,13 +134,13 @@
 
             if (totalTransaksi > depositValue) {
                 amountElement.style.backgroundColor = "red";
-                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI deposit!";
+                warningElement.innerText = "⚠️ PERINGATAN: Nilai transaksi MELEBIHI batas / hari!";
             } else if (totalTransaksi >= depositValue * 0.8) {
                 amountElement.style.backgroundColor = "yellow";
-                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi mendekati batas deposit.";
+                warningElement.innerText = "⚠️ PERHATIAN: Nilai transaksi MENDEKATI batas / hari.";
             } else {
                 amountElement.style.backgroundColor = "lightgreen";
-                warningElement.innerText = "✅ Aman: Transaksi masih dalam batas deposit.";
+                warningElement.innerText = "✅ Transaksi masih dalam batas AMAN.";
             }
         }
 
@@ -174,10 +174,10 @@
     <h2 class="amount" id="amount">Memuat data...</h2>
     <p id="warning" class="warning">Menunggu data...</p>
     <p>______________________________</p>
-    <h2>DEPOSIT:</h2>
+    <h2>BATAS TRANSAKSI / HARI:</h2>
     <h2 class="deposit" id="deposit">Memuat data...</h2>
     <p>______________________________</p>
-    <p>Nilai transaksi tidak boleh melebihi deposit, konfirmasi owner untuk batasan transaksi per hari</p>
+    <p>Nilai transaksi tidak boleh melebihi batas, konfirmasi owner untuk perubahan batas transaksi per hari</p>
     <p class="footer"><i>Design By PIGOLD 2025</i></p>
 </body>
 </html>
